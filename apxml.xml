@@ -1,0 +1,14 @@
+Selected interface 'wlan0'
+<aps>
+  <ap mode="Master" encryption="NONE" channel="11" hwaddr="00:02:e3:47:d7:a7" auth="OPEN" linkquality="65" signalstrength="-17.6" noiselevel="0" ssid="AMX" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="2" hwaddr="00:13:21:57:f6:03" auth="OPEN" linkquality="63" signalstrength="-17.2" noiselevel="0" ssid="ITWM-GUEST" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="1" hwaddr="00:13:21:57:e6:61" auth="OPEN" linkquality="82" signalstrength="-21" noiselevel="0" ssid="ITWM-GUEST" wps="no" />
+  <ap mode="Master" encryption="AES" channel="5" hwaddr="00:24:a5:b0:06:ef" auth="WPA2PSK" linkquality="83" signalstrength="-21.2" noiselevel="0" ssid="OpenWrt" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="6" hwaddr="00:13:21:57:e6:97" auth="OPEN" linkquality="68" signalstrength="-18.2" noiselevel="0" ssid="ITWM-GUEST" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="1" hwaddr="00:13:21:57:38:59" auth="OPEN" linkquality="67" signalstrength="-18" noiselevel="0" ssid="ITWM-GUEST" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="1" hwaddr="00:13:21:57:17:c7" auth="OPEN" linkquality="61" signalstrength="-16.8" noiselevel="0" ssid="ITWM-GUEST" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="13" hwaddr="00:13:21:57:17:f5" auth="OPEN" linkquality="68" signalstrength="-18.2" noiselevel="0" ssid="ITWM-GUEST" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="11" hwaddr="00:1d:73:b3:e8:f1" auth="OPEN" linkquality="71" signalstrength="-18.8" noiselevel="0" ssid="msg-demo1" wps="no" />
+  <ap mode="Master" encryption="WEP" channel="11" hwaddr="00:25:9c:34:f5:f0" auth="WEPAUTO" linkquality="64" signalstrength="-17.4" noiselevel="0" ssid="zwaluw" wps="no" />
+  <ap mode="Master" encryption="NONE" channel="1" hwaddr="00:13:21:57:28:5d" auth="OPEN" linkquality="65" signalstrength="-17.6" noiselevel="0" ssid="ITWM-GUEST-TEST" wps="no" />
+</aps>

@@ -1,0 +1,29 @@
+netconf - 07.12.11
+
+this is a small qt application for the chumby device.
+
+it uses a modified start_network perl script (located in /usr/chumby/scripts 
+on your chumby) to scan for available wifi networks (via wpa_supplicant).
+a (optional) wifi key / ip configuration can be done with the included 
+onscreen touch-keyboard.
+in the end a connection attempt is performed...when successfull your chumby
+should be connected to a wifi network...*yaay!*
+
+
+WARNING: there no guarantee whatsorever for this application since it's 
+a work-in-progress project. 
+at the moment there is a lot in-code debugging and the code is setup 
+for testing on a standard-pc development machine!!
+
+needed:
+- qt 4.7+ libs
+
+NOTE: qt should be compiled with "qvfb" support, if you want to run the 
+application on a development machine...
+
+quick make:
+
+1. checkout 
+2. run "qmake" in project dir
+3. make
+4. run "./chumbynetconf -qws"
