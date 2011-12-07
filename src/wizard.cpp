@@ -30,7 +30,9 @@ IntroPage::IntroPage ( QWidget *parent ) : QWidget ( parent )
 	QTextEdit* textEdit = new QTextEdit();
 	textEdit->setReadOnly ( true );
 	textEdit->setHtml ( tr ( "<h2>Welcome to the Chumby WiFi-Network Setup!</h2>"
-	                         "<p>Just follow the Instructions onscreen.<br> Please consider that this assistant is a work-in-progress project and there may be some rough edges! <br>When you run across a bug, please send me a mail at montibel@itwm.fhg.de</p>" ) );
+	                         "<p>Just follow the Instructions onscreen.<br> \
+	                         Please consider that this assistant is a work-in-progress project and there may be some rough edges! <br><br> \
+	                         When you run across a bug, please send me a mail at montibel@itwm.fhg.de</p>" ) );
 
 	layout->addWidget ( textEdit );
 
@@ -56,9 +58,9 @@ ScanPage::ScanPage ( QWidget* parent ) : QWidget ( parent )
 
 	QFont aplfont = aplist->font();
 	qDebug ( "Fontsize: %d", aplfont.pointSize() );
-	aplfont.setPointSize ( 20 );
+	aplfont.setPointSize ( 18 );
 	aplist->setFont ( aplfont );
-	aplist->setSpacing ( 3 );
+	aplist->setSpacing ( 4 );
 	//aplist->setVisible(false);
 
 	QProgressBar* bar = new QProgressBar();
@@ -209,7 +211,7 @@ void ScanPage::parseAP()
 				wifiap.insert ( "wps", e.attribute ( "wps", "" ) );
 				wifiap.insert ( "type", "wlan" );
 
-				QListWidgetItem* item = new QListWidgetItem ( e.attribute ( "ssid", "" ) + " |  " + e.attribute ( "auth", "" ), aplist );
+				QListWidgetItem* item = new QListWidgetItem ( QIcon ( ( wifiap.value ( "encryption" ) == "NONE" ) ? ":/icon/ressource/open.png" : ":/icon/ressource/locked.png" ), e.attribute ( "ssid", "" ) + " | " + wifiap.value ( "linkquality" ).toString() + "%", aplist );
 				item->setData ( Qt::UserRole, QVariant ( wifiap ) );
 			}
 		}
@@ -396,7 +398,9 @@ void ShowCfgPage::getAPInfo ( ScanPage* page )
 	info.append ( "MAC: " + page->selectedap->value ( "hwaddr" ).toString() + "\n" );
 	info.append ( "AUTH: " + page->selectedap->value ( "auth" ).toString() + "\n" );
 	info.append ( "ENCRYPTION: " + page->selectedap->value ( "encryption" ).toString() + "\n" );
-	info.append ( "WIFI_KEY: " + page->selectedap->value ( "key" ).toString() + "\n" );
+	if ( page->selectedap->value ( "encryption" ).toString() != "NONE" ) {
+		info.append ( "WIFI_KEY: " + page->selectedap->value ( "key" ).toString() + "\n" );
+	}
 	info.append ( "LINK QUALITY: " + page->selectedap->value ( "linkquality" ).toString() + "\n" );
 	info.append ( "CHANNEL: " + page->selectedap->value ( "channel" ).toString() + "\n" );
 	info.append ( "ALLOCATION: " + page->selectedap->value ( "allocation" ).toString() + "\n" );
@@ -449,12 +453,10 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 	if ( cfgfile.open ( QIODevice::WriteOnly | QIODevice::Text ) ) {
 		QTextStream out ( &cfgfile );
 		out << cfg;
-
 		cfgfile.close();
 	} else {
 		qDebug ( "%s", qPrintable ( QString ( "could not open file: %1" ).arg ( cfgfile.fileName() ) ) );
 	}
-
 
 }
 
@@ -565,7 +567,6 @@ void ConnectionTest::doConnect()
 	//}
 	//qDebug("%s", qPrintable(QString("connecting done.")));
 }
-
 
 
 Wizard::Wizard() : QDialog()
