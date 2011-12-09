@@ -15,7 +15,7 @@
 #include <QFile>
 #include <QTextStream>
 
-#include <QTest> //temp for debug!
+//#include <QTest> //temp for debug!
 
 #include "wizard.h"
 #include "chumbyvnumpad/chumbyvnumpad.h"
@@ -85,7 +85,7 @@ ScanPage::ScanPage ( QWidget* parent ) : QWidget ( parent )
 
 	scanrun = false;
 	//connect(scanbtn, SIGNAL(clicked()),this, SLOT(scanAP()));
-	connect ( scanbtn, SIGNAL ( clicked() ), this, SLOT ( parseAP() ) );
+	connect ( scanbtn, SIGNAL ( clicked() ), this, SLOT ( parseAP() ) ); //change for actuall use here!!
 	connect ( this, SIGNAL ( scanning ( bool ) ), bar, SLOT ( setHidden ( bool ) ) );
 	connect ( this, SIGNAL ( scanning ( bool ) ), scanbtn, SLOT ( setEnabled ( bool ) ) );
 	connect ( this, SIGNAL ( scanning ( bool ) ), aplist, SLOT ( setVisible ( bool ) ) );
@@ -118,24 +118,6 @@ void ScanPage::scanAP()
 	QString command = "/usr/chumby/scripts/ap_scan";
 
 	scanscript->start ( command );
-
-	//FILE *fpipe;
-	//const char *command="/usr/chumby/scripts/ap_scan";
-	//char line[256];
-	//QString result("");
-
-	//if ( !(fpipe = (FILE*)popen(command,"r")) )
-	//{	//If fpipe is NULL
-	//std::cerr << "Problems with file pipe" << std::endl;
-	//exit(1);
-	//}
-	//
-	//while (fgets( line, sizeof line, fpipe))
-	//{
-	//std::cout << line << std::endl;
-	//result.append(QString(line));
-	//}
-	// pclose(fpipe);
 
 	//ScanPage::parseAP(&result);
 
@@ -468,8 +450,9 @@ ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 	//qDebug ( "Fontsize: %d", aplfont.pointSize() );
 	//aplfont.setPointSize ( 20 );
 	//aplist->setFont ( aplfont );
-	//aplist->setSpacing ( 3 );
-	//aplist->setVisible(false);
+	
+	QTextEdit* result = new QTextEdit(this);
+	result->setVisible(false);
 
 	title = new QLabel ( "Checking connection..." );
 
@@ -479,71 +462,122 @@ ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 	bar->setVisible ( false );
 	bar->setStyleSheet ( "margin-bottom: 40px" );
 
-	//scanbtn = new QPushButton ( "switch" );
-	//scanbtn->setEnabled( false );
-	//qDebug ( "Scanbtn height: %d", scanbtn->sizeHint().height() );
-	//scanbtn->setFixedHeight ( ( int ) ( scanbtn->sizeHint().height() * 1.5 ) );
-	//QFont scbtfont = scanbtn->font();
-	//scbtfont.setPointSize ( 14 );
-	//scanbtn->setFont ( scbtfont );
 
 	layout->addStretch();
 	layout->addWidget ( title );
 	layout->addStretch();
+	layout->addWidget(result);
 	layout->addWidget ( bar );
+	layout->addStretch();
 	//layout->addWidget ( scanbtn );
 	layout->setContentsMargins ( 0, 0, 0, 0 );
 	layout->setSpacing ( 6 );
 
 	testrun = false;
-	//connect( scanbtn, SIGNAL(clicked()) ,this , SLOT(scanAP()));
-	//connect ( scanbtn, SIGNAL ( clicked() ), this, SLOT ( parseAP() ) );
+	
 	connect ( this, SIGNAL ( connecting ( bool ) ), bar, SLOT ( setVisible ( bool ) ) );
-	//connect ( this, SIGNAL ( connecting ( bool ) ), scanbtn, SLOT ( setEnabled ( bool ) ) );
-	//connect ( aplist, SIGNAL ( itemClicked ( QListWidgetItem* ) ), this, SLOT ( enableNext ( QListWidgetItem* ) ) );
+	connect ( this, SIGNAL ( connecting ( bool ) ), result, SLOT ( setHidden ( bool ) ) );
 
 	connectscript = new QProcess();
+	checkscript  = new QProcess();
 	connect ( connectscript, SIGNAL ( error ( QProcess::ProcessError ) ), this, SLOT ( err() ) );
-	connect ( connectscript, SIGNAL ( finished ( int, QProcess::ExitStatus ) ), this, SLOT ( enbtn() ) );
+	connect ( checkscript, SIGNAL ( error ( QProcess::ProcessError ) ), this, SLOT ( err() ) );
+	connect ( connectscript, SIGNAL ( finished ( int, QProcess::ExitStatus ) ), this, SLOT ( checkStatus() ) );
+	connect ( checkscript, SIGNAL ( finished ( int, QProcess::ExitStatus ) ), this, SLOT ( parseStatus() ) );
 }
 
 
-void ConnectionTest::enbtn()
+void ConnectionTest::parseStatus()
 {
-	qDebug ( "%s", qPrintable ( QString ( "buttonsction.." ) ) );
+	QDomDocument doc ( "" );
+	QString errorStr;
+	int errorLine;
+	int errorColumn;
 
+	result->clear(); 
+	//----
+	QString instr(connectscript->readAll());
+
+	if ( !instr.startsWith ( "<network>" ) ) { 
+		instr = instr.remove ( 0, instr.indexOf ( "<network>" ) );
+	}
+	qDebug ( "%s", qPrintable ( instr ) );
+
+	if ( !doc.setContent ( instr, &errorStr, &errorLine, &errorColumn ) ) {
+		qCritical ( "Problem with setContent!" );
+		qCritical ( "at Line: %d", errorLine );
+		qCritical ( "at Col: %d", errorColumn );
+		qCritical ( "Err.: %s", qPrintable ( errorStr ) );
+		exit ( 1 );
+	}
+
+	QString outstr;
+	QDomElement root = doc.documentElement();
+
+	if ( root.tagName() != "network" )
+		exit ( 2 );
+
+	QDomNode n = root.firstChild();
+
+	while ( !n.isNull() ) {
+		QDomElement e = n.toElement();		
+		if ( !e.isNull() ) {
+			if ( e.tagName() == "interface" ) {
+				if (e.attribute("up","")== "true"){
+					outstr.append("Interface is UP!\n");
+				} else {
+					outstr.append("Interface is DOWN!\n");
+				}
+		
+				if (e.attribute("link","")== "true"){
+					outstr.append("Interface has LINK!\n");
+				} else {
+					outstr.append("Interface has NO LINK!\n");
+				}
+				
+				outstr.append("IP: " + e.attribute("ip","") + "\n");
+				outstr.append("NETMASK: " + e.attribute("netmask","") + "\n");
+				outstr.append("GATEWAY: " + e.attribute("gateway","") + "\n");
+				outstr.append("DNS1: " + e.attribute("nameserver1","") + "\n");
+				outstr.append("DNS2: " + e.attribute("nameserver2","") + "\n");
+			}
+			
+			if ( e.tagName() == "stats" ) {			
+				outstr.append("Rx: " + e.attribute("rx_bytes","") + " (bytes) in " + e.attribute("rx_packets","")+ " packets\n");
+				outstr.append("Tx: " + e.attribute("tx_bytes","") + " (bytes) in " + e.attribute("tx_packets","")+ " packets\n");
+			}
+		}
+
+		n = n.nextSibling();
+	}
+	
+	//insert result text...
+	result->setPlainText(outstr);
+	
+	//signal the end of the connection attempt..	
 	if ( testrun == true ) {
 		testrun = false;
 		emit connecting ( testrun );
-		qDebug ( "%s", qPrintable ( QString ( "connecting emit 2" ) ) );
 	}
-	//qDebug("%s", qPrintable(QString("connecting done.")));
-	//scanbtn->setEnabled( true );
-
-	title->setText ( "Checking connection...OK!" );
-
-	qDebug ( "out: %s", qPrintable ( "" + QString::fromLocal8Bit ( connectscript->readAll() ) ) );
 }
 
 
-void ConnectionTest::err()
+void ConnectionTest::checkStatus()
 {
-	if ( testrun == true ) {
-		testrun = false;
-		emit connecting ( testrun );
-		qDebug ( "%s", qPrintable ( QString ( "connecting emit 2" ) ) );
-	}
+	qDebug ( "%s", qPrintable ( QString ( "checking..." ) ) );
+	//QString command = "/usr/chumby/scripts/network_status.sh --fast";
+	QString command = "sh test.sh";
 
-	//scanbtn->setEnabled( false );
-	title->setText ( "Checking connection...Error!" );
-	qDebug ( "%s", qPrintable ( QString ( "proc err.." ) ) );
-
+	checkscript->start ( command );
+	qDebug ( "out: %s", qPrintable ( QString ( "command run..." ) ) );
 }
 
 
 void ConnectionTest::doConnect()
 {
 	qDebug ( "%s", qPrintable ( QString ( "connecting..." ) ) );
+	
+	//signal the start of the connection atempt..
 	if ( testrun == false ) {
 		testrun = true;
 		emit connecting ( testrun );
@@ -552,20 +586,26 @@ void ConnectionTest::doConnect()
 
 	qDebug ( "%s", qPrintable ( QString ( "connecting..." ) ) );
 	//QString command = "/usr/chumby/scripts/start_network wlan0 CONNECT";
-	//QString command = "/bin/bash";
 	QString command = "sh test.sh";
 
 	connectscript->start ( command );
-	qDebug ( "out: %s", qPrintable ( QString ( "commend run..." ) ) );
-	//QTest::qWait(3000);
+	qDebug ( "out: %s", qPrintable ( QString ( "command run..." ) ) );
 
-	//if (testrun == true)
-	//{
-	//testrun = false;
-	//emit connecting ( testrun );
-	//qDebug("%s", qPrintable(QString("connecting emit 2")));
-	//}
-	//qDebug("%s", qPrintable(QString("connecting done.")));
+}
+
+
+void ConnectionTest::err()
+{
+	if ( testrun == true ) {
+		testrun = false;
+		emit connecting ( testrun );
+		qDebug ( "%s", qPrintable ( QString ( "connecting error emit!" ) ) );
+	}
+
+	//scanbtn->setEnabled( false );
+	title->setText ( "Checking connection...Error!" );
+	qDebug ( "%s", qPrintable ( QString ( "proc err.." ) ) );
+
 }
 
 

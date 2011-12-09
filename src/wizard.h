@@ -122,11 +122,15 @@ class ConnectionTest : public QWidget
 		
 	private:
 	bool testrun;
+	QTextEdit* result;
 	QProcess* connectscript;
+	QProcess* checkscript;
 	
 	public slots:
 	void doConnect();
-	void enbtn();
+	void checkStatus();
+	void parseStatus();
+	//void enbtn();
 	void err();
 	
 	signals:
