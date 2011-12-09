@@ -430,6 +430,7 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 	qDebug ( "currdir: %s", qPrintable ( QDir::currentPath() + "/network_config" ) );
 	QFile cfgfile ( QDir::currentPath() + "/network_config" );
 	//QFile cfgfile ( "/mnt/usb/network_config" );
+	//QFile cfgfile ( "/psp/network_config" );
 
 
 	if ( cfgfile.open ( QIODevice::WriteOnly | QIODevice::Text ) ) {
