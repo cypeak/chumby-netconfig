@@ -84,8 +84,8 @@ ScanPage::ScanPage ( QWidget* parent ) : QWidget ( parent )
 	layout->setSpacing ( 6 );
 
 	scanrun = false;
-	//connect(scanbtn, SIGNAL(clicked()),this, SLOT(scanAP()));
-	connect ( scanbtn, SIGNAL ( clicked() ), this, SLOT ( parseAP() ) ); //change for actuall use here!!
+	connect ( scanbtn, SIGNAL ( clicked() ), this, SLOT ( scanAP() ) );
+	//connect ( scanbtn, SIGNAL ( clicked() ), this, SLOT ( parseAP() ) ); //change for actuall use here!!
 	connect ( this, SIGNAL ( scanning ( bool ) ), bar, SLOT ( setHidden ( bool ) ) );
 	connect ( this, SIGNAL ( scanning ( bool ) ), scanbtn, SLOT ( setEnabled ( bool ) ) );
 	connect ( this, SIGNAL ( scanning ( bool ) ), aplist, SLOT ( setVisible ( bool ) ) );
@@ -119,8 +119,6 @@ void ScanPage::scanAP()
 
 	scanscript->start ( command );
 
-	//ScanPage::parseAP(&result);
-
 	//if (scanrun == true)
 	//{
 	//scanrun = false;
@@ -139,21 +137,21 @@ void ScanPage::parseAP()
 	aplist->clear();
 	//----
 
-	QFile file ( "apxml.xml" );
-	QString instr = "";
+	//QFile file ( "apxml.xml" );
+	//QString instr = "";
 
-	if ( file.open ( QIODevice::ReadOnly ) ) {
-		QTextStream stream ( &file );
+	//if ( file.open ( QIODevice::ReadOnly ) ) {
+	//QTextStream stream ( &file );
 
-		while ( !stream.atEnd() ) {
-			instr = stream.readAll(); // line of text excluding '\n'
-		}
+	//while ( !stream.atEnd() ) {
+	//instr = stream.readAll(); // line of text excluding '\n'
+	//}
 
-		file.close();
-	}
+	//file.close();
+	//}
 
 	//---
-	//QString instr(scanscript->readAll());
+	QString instr ( scanscript->readAll() );
 
 	if ( !instr.startsWith ( "<aps>" ) ) {
 		instr = instr.remove ( 0, instr.indexOf ( "<aps>" ) );
@@ -193,8 +191,9 @@ void ScanPage::parseAP()
 				wifiap.insert ( "wps", e.attribute ( "wps", "" ) );
 				wifiap.insert ( "type", "wlan" );
 
-				QListWidgetItem* item = new QListWidgetItem ( QIcon ( ( wifiap.value ( "encryption" ) == "NONE" ) ? ":/icon/ressource/open.png" : ":/icon/ressource/locked.png" ), e.attribute ( "ssid", "" ) + " | " + wifiap.value ( "linkquality" ).toString() + "%", aplist );
+				QListWidgetItem* item = new QListWidgetItem ( e.attribute ( "ssid", "" ) + " | " + wifiap.value ( "linkquality" ).toString() + "%", aplist );
 				item->setData ( Qt::UserRole, QVariant ( wifiap ) );
+				item->setIcon ( QIcon ( ( wifiap.value ( "encryption" ) == "NONE" ) ? ":/icon/ressource/open.png" : ":/icon/ressource/locked.png" ) );
 			}
 		}
 
@@ -214,7 +213,7 @@ const QListWidgetItem* ScanPage::getListSelection()
 }
 
 
-void ScanPage::getAPData ( QMap<QString, QVariant>* apoint )
+void ScanPage::getAPData ( QMap<QString, QVariant>* /*apoint*/ )
 {
 	qDebug ( "geting ap data.." );
 	//const QListWidgetItem* selected = aplist->currentItem();
@@ -226,7 +225,7 @@ void ScanPage::getAPData ( QMap<QString, QVariant>* apoint )
 	} else {
 		qDebug ( "mapping AP data..." );
 		*selectedap = apinfo.toMap();
-		*apoint = apinfo.toMap();
+		//*apoint = apinfo.toMap();
 		qDebug ( "ap data mapped!" );
 	}
 
@@ -427,10 +426,9 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 	qDebug ( "%s", qPrintable ( cfg ) );
 	textEdit2->setPlainText ( cfg );
 
-	qDebug ( "currdir: %s", qPrintable ( QDir::currentPath() + "/network_config" ) );
-	QFile cfgfile ( QDir::currentPath() + "/network_config" );
+	qDebug ( "currdir: %s", qPrintable ( QDir::currentPath() ) );
 	//QFile cfgfile ( "/mnt/usb/network_config" );
-	//QFile cfgfile ( "/psp/network_config" );
+	QFile cfgfile ( "/psp/network_config" );
 
 
 	if ( cfgfile.open ( QIODevice::WriteOnly | QIODevice::Text ) ) {
@@ -441,19 +439,24 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 		qDebug ( "%s", qPrintable ( QString ( "could not open file: %1" ).arg ( cfgfile.fileName() ) ) );
 	}
 
+	//the following code is for debugging only - it copies the generated cfg-file
+	//to the external usb storage device...please remove/comment it if not needed!
+	if ( QFile::exists ( "/mnt/usb/netconf/network_config" ) ) {
+		QFile::remove ( "/mnt/usb/netconf/network_config" );
+		qDebug ( "%s", qPrintable ( QString ( "CFG File removed..." ) ) );
+	} else {
+		QFile::copy ( "/psp/network_config", "/mnt/usb/netconf/network_config" );
+		qDebug ( "%s", qPrintable ( QString ( "CFG File copied..." ) ) );
+	}
 }
 
 ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 {
 	QVBoxLayout* layout = new QVBoxLayout ( this );
 
-	//QFont aplfont = aplist->font();
-	//qDebug ( "Fontsize: %d", aplfont.pointSize() );
-	//aplfont.setPointSize ( 20 );
-	//aplist->setFont ( aplfont );
-	
-	QTextEdit* result = new QTextEdit(this);
-	result->setVisible(false);
+	result = new QTextEdit ( this );
+	result->setPlainText ( "Log:" );
+	result->setVisible ( false );
 
 	title = new QLabel ( "Checking connection..." );
 
@@ -467,7 +470,7 @@ ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 	layout->addStretch();
 	layout->addWidget ( title );
 	layout->addStretch();
-	layout->addWidget(result);
+	layout->addWidget ( result );
 	layout->addWidget ( bar );
 	layout->addStretch();
 	//layout->addWidget ( scanbtn );
@@ -475,7 +478,7 @@ ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 	layout->setSpacing ( 6 );
 
 	testrun = false;
-	
+
 	connect ( this, SIGNAL ( connecting ( bool ) ), bar, SLOT ( setVisible ( bool ) ) );
 	connect ( this, SIGNAL ( connecting ( bool ) ), result, SLOT ( setHidden ( bool ) ) );
 
@@ -483,6 +486,7 @@ ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 	checkscript  = new QProcess();
 	connect ( connectscript, SIGNAL ( error ( QProcess::ProcessError ) ), this, SLOT ( err() ) );
 	connect ( checkscript, SIGNAL ( error ( QProcess::ProcessError ) ), this, SLOT ( err() ) );
+
 	connect ( connectscript, SIGNAL ( finished ( int, QProcess::ExitStatus ) ), this, SLOT ( checkStatus() ) );
 	connect ( checkscript, SIGNAL ( finished ( int, QProcess::ExitStatus ) ), this, SLOT ( parseStatus() ) );
 }
@@ -494,12 +498,15 @@ void ConnectionTest::parseStatus()
 	QString errorStr;
 	int errorLine;
 	int errorColumn;
+	result->clear();
 
-	result->clear(); 
-	//----
-	QString instr(connectscript->readAll());
+	//qDebug ( "%s", qPrintable ( QString ( "Status parse (1) ..." ) ) );
 
-	if ( !instr.startsWith ( "<network>" ) ) { 
+	QString instr ( checkscript->readAll() );
+
+	//qDebug ( "%s", qPrintable ( QString ( "Status parse (2) ..." ) ) );
+
+	if ( !instr.startsWith ( "<network>" ) ) {
 		instr = instr.remove ( 0, instr.indexOf ( "<network>" ) );
 	}
 	qDebug ( "%s", qPrintable ( instr ) );
@@ -512,50 +519,59 @@ void ConnectionTest::parseStatus()
 		exit ( 1 );
 	}
 
+	//qDebug ( "%s", qPrintable ( QString ( "Status parse (3) ..." ) ) );
+
 	QString outstr;
 	QDomElement root = doc.documentElement();
 
-	if ( root.tagName() != "network" )
+	if ( root.tagName() != "network" ) {
 		exit ( 2 );
+	}
 
 	QDomNode n = root.firstChild();
 
+	//qDebug ( "%s", qPrintable ( QString ( "Status parse (4) ..." ) ) );
+
 	while ( !n.isNull() ) {
-		QDomElement e = n.toElement();		
+		QDomElement e = n.toElement();
 		if ( !e.isNull() ) {
 			if ( e.tagName() == "interface" ) {
-				if (e.attribute("up","")== "true"){
-					outstr.append("Interface is UP!\n");
+				if ( e.attribute ( "up", "" ) == "true" ) {
+					outstr.append ( "Interface is UP!\n" );
 				} else {
-					outstr.append("Interface is DOWN!\n");
+					outstr.append ( "Interface is DOWN!\n" );
 				}
-		
-				if (e.attribute("link","")== "true"){
-					outstr.append("Interface has LINK!\n");
+
+				if ( e.attribute ( "link", "" ) == "true" ) {
+					outstr.append ( "Interface has LINK!\n" );
 				} else {
-					outstr.append("Interface has NO LINK!\n");
+					outstr.append ( "Interface has NO LINK!\n" );
 				}
-				
-				outstr.append("IP: " + e.attribute("ip","") + "\n");
-				outstr.append("NETMASK: " + e.attribute("netmask","") + "\n");
-				outstr.append("GATEWAY: " + e.attribute("gateway","") + "\n");
-				outstr.append("DNS1: " + e.attribute("nameserver1","") + "\n");
-				outstr.append("DNS2: " + e.attribute("nameserver2","") + "\n");
+
+				outstr.append ( "IP: " + e.attribute ( "ip", "" ) + "\n" );
+				outstr.append ( "NETMASK: " + e.attribute ( "netmask", "" ) + "\n" );
+				outstr.append ( "GATEWAY: " + e.attribute ( "gateway", "" ) + "\n" );
+				outstr.append ( "DNS1: " + e.attribute ( "nameserver1", "" ) + "\n" );
+				outstr.append ( "DNS2: " + e.attribute ( "nameserver2", "" ) + "\n" );
 			}
 			
-			if ( e.tagName() == "stats" ) {			
-				outstr.append("Rx: " + e.attribute("rx_bytes","") + " (bytes) in " + e.attribute("rx_packets","")+ " packets\n");
-				outstr.append("Tx: " + e.attribute("tx_bytes","") + " (bytes) in " + e.attribute("tx_packets","")+ " packets\n");
+			//this section needs a fix. at the moment it is simply ignored, since "stats" is another child of the "root" element, not 
+			//a child of the selected element (interface)..
+			if ( e.tagName() == "stats" ) {
+				outstr.append ( "Rx: " + e.attribute ( "rx_bytes", "" ) + " bytes in " + e.attribute ( "rx_packets", "" ) + " packets\n" );
+				outstr.append ( "Tx: " + e.attribute ( "tx_bytes", "" ) + " bytes in " + e.attribute ( "tx_packets", "" ) + " packets\n" );
 			}
 		}
 
 		n = n.nextSibling();
 	}
+
+	//qDebug ( "%s", qPrintable ( QString ( "Status parse (5) ..." ) ) );
 	
 	//insert result text...
-	result->setPlainText(outstr);
-	
-	//signal the end of the connection attempt..	
+	result->setPlainText ( outstr );
+
+	//signal the end of the connection attempt..
 	if ( testrun == true ) {
 		testrun = false;
 		emit connecting ( testrun );
@@ -566,8 +582,8 @@ void ConnectionTest::parseStatus()
 void ConnectionTest::checkStatus()
 {
 	qDebug ( "%s", qPrintable ( QString ( "checking..." ) ) );
-	//QString command = "/usr/chumby/scripts/network_status.sh --fast";
-	QString command = "sh test.sh";
+	QString command = "/usr/chumby/scripts/network_status.sh --fast";
+	//QString command = "sh test.sh";
 
 	checkscript->start ( command );
 	qDebug ( "out: %s", qPrintable ( QString ( "command run..." ) ) );
@@ -577,7 +593,7 @@ void ConnectionTest::checkStatus()
 void ConnectionTest::doConnect()
 {
 	qDebug ( "%s", qPrintable ( QString ( "connecting..." ) ) );
-	
+
 	//signal the start of the connection atempt..
 	if ( testrun == false ) {
 		testrun = true;
@@ -587,9 +603,10 @@ void ConnectionTest::doConnect()
 
 	qDebug ( "%s", qPrintable ( QString ( "connecting..." ) ) );
 	//QString command = "/usr/chumby/scripts/start_network wlan0 CONNECT";
-	QString command = "sh test.sh";
-
+	QString command = "/usr/chumby/scripts/start_network";
+	//QString command = "sh test.sh";
 	connectscript->start ( command );
+
 	qDebug ( "out: %s", qPrintable ( QString ( "command run..." ) ) );
 
 }

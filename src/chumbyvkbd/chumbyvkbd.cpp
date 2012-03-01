@@ -341,7 +341,7 @@ void ChumbyVirtualKeyboard::sendChar ( int indexOfCharToSend )
 {
 	pressTimer->stop();
 
-	if ( verticalLayoutWidget2->isVisible() )  // when using "other" characters, leave methoid here
+	if ( verticalLayoutWidget2->isVisible() )  // when using "other" characters, leave method here
 	{
 		return;
 	}
@@ -363,7 +363,7 @@ void ChumbyVirtualKeyboard::sendChar ( int indexOfCharToSend )
 
 void ChumbyVirtualKeyboard::buttonPressed ( int indexOfCharToSend )
 {
-	if ( buttonC1->isChecked() )  // Si on est pas en mode majuscule, on démarre le timer
+	if ( buttonC1->isChecked() )  // start timer for special character display...
 	{
 		pressTimer->start ( 1000 );
 	}
