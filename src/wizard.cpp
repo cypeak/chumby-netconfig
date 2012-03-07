@@ -363,12 +363,12 @@ ShowCfgPage::ShowCfgPage ( QWidget* parent ) : QWidget ( parent )
 	textEdit = new QTextEdit();
 	textEdit->setReadOnly ( true );
 
-	textEdit2 = new QTextEdit();
-	textEdit2->setReadOnly ( true );
+	//textEdit2 = new QTextEdit();
+	//textEdit2->setReadOnly ( true );
 
 	layout->addWidget ( new QLabel ( tr ( "Selected WiFi Network:" ) ) );
 	layout->addWidget ( textEdit );
-	layout->addWidget ( textEdit2 );
+	//layout->addWidget ( textEdit2 );
 }
 
 
@@ -424,7 +424,7 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 	cfg.append ( "/>" );
 
 	qDebug ( "%s", qPrintable ( cfg ) );
-	textEdit2->setPlainText ( cfg );
+	//textEdit2->setPlainText ( cfg );
 
 	qDebug ( "currdir: %s", qPrintable ( QDir::currentPath() ) );
 	//QFile cfgfile ( "/mnt/usb/network_config" );
@@ -441,6 +441,7 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 
 	//the following code is for debugging only - it copies the generated cfg-file
 	//to the external usb storage device...please remove/comment it if not needed!
+	/*
 	if ( QFile::exists ( "/mnt/usb/netconf/network_config" ) ) {
 		QFile::remove ( "/mnt/usb/netconf/network_config" );
 		qDebug ( "%s", qPrintable ( QString ( "CFG File removed..." ) ) );
@@ -448,6 +449,7 @@ void ShowCfgPage::writeCfg ( ScanPage* page )
 		QFile::copy ( "/psp/network_config", "/mnt/usb/netconf/network_config" );
 		qDebug ( "%s", qPrintable ( QString ( "CFG File copied..." ) ) );
 	}
+	*/
 }
 
 ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
@@ -455,6 +457,7 @@ ConnectionTest::ConnectionTest ( QWidget* parent ) : QWidget ( parent )
 	QVBoxLayout* layout = new QVBoxLayout ( this );
 
 	result = new QTextEdit ( this );
+	result->setReadOnly ( true );
 	result->setPlainText ( "Log:" );
 	result->setVisible ( false );
 
@@ -800,11 +803,9 @@ void Wizard::doNext()
 
 		case 10: //connectPg
 
-			//QMessageBox::information( this, tr("Finishing"), tr("Here is where the action takes place.") );
-			QMessageBox* msgBox = new QMessageBox ( QMessageBox::Information, "" , "This is the text",
-			                                        QMessageBox::Ok, this, Qt::Dialog | Qt::CustomizeWindowHint );
-
-			msgBox->exec();
+			//QMessageBox* msgBox = new QMessageBox ( QMessageBox::Information, "" , "This is the text", QMessageBox::Ok, this, Qt::Dialog | Qt::CustomizeWindowHint );
+			//msgBox->exec();
+			
 			accept();
 
 			return;

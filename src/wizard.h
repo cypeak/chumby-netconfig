@@ -107,7 +107,7 @@ class ShowCfgPage : public QWidget
 
 	private:
 		QTextEdit* textEdit;
-		QTextEdit* textEdit2;
+		//QTextEdit* textEdit2;
 };
 
 //-----------------------
